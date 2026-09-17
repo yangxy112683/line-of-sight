@@ -1,0 +1,18 @@
+{"id":"evt-plumb","parentId":null,"timestamp":1700000000000,"type":"message","role":"user","content":[{"type":"input_text","text":"<system-reminder>cli plumbing, not a prompt</system-reminder>"}],"cwd":"/repo"}
+{"id":"evt-user","parentId":"evt-plumb","timestamp":1700000001000,"type":"message","role":"user","content":[{"type":"input_text","text":"fix the login bug"}],"cwd":"/repo"}
+{"id":"evt-asst","parentId":"evt-user","timestamp":1700000002000,"type":"message","role":"assistant","content":[{"type":"output_text","text":"I will look at `src/login.ts`."}],"cwd":"/repo"}
+{"id":"evt-think","parentId":"evt-asst","timestamp":1700000003000,"type":"reasoning","rawContent":[{"type":"reasoning_text","text":"Need to find the auth handler first."}],"content":[]}
+{"id":"evt-call","parentId":"evt-think","timestamp":1700000004000,"type":"function_call","callId":"call_read_1","name":"Read","arguments":"{\"file_path\":\"src/login.ts\"}","providerData":{"reasoning":"duplicate of the reasoning line; must be ignored"}}
+{"id":"evt-result","parentId":"evt-call","timestamp":1700000005000,"type":"function_call_result","callId":"call_read_1","name":"Read","status":"completed","output":{"type":"text","text":"export function login() {}"}}
+{"id":"evt-sum-init","timestamp":1700000006000,"type":"summary","summary":"Fix login","providerData":{"source":"initial-user-message"}}
+{"id":"evt-sum-per","timestamp":1700000007000,"type":"summary","summary":"Login handler patch","providerData":{"source":"periodic"}}
+{"id":"evt-ai-title","timestamp":1700000008000,"type":"ai-title","aiTitle":"Fix the login bug","cwd":"/repo"}
+{"id":"evt-goal-p","timestamp":1700000009000,"type":"goal-progress","condition":"ship the login fix","reason":"still reading"}
+{"id":"evt-goal-r","timestamp":1700000010000,"type":"goal-result","ok":true,"condition":"ship the login fix"}
+{"id":"evt-agent-s","timestamp":1700000011000,"type":"agent_started","name":"Explore"}
+{"id":"evt-agent-f","timestamp":1700000012000,"type":"agent_finished","name":"Explore"}
+{"id":"evt-run-s","timestamp":1700000013000,"type":"run_started"}
+{"id":"evt-run-f","timestamp":1700000014000,"type":"run_finished"}
+{"id":"evt-snap","timestamp":1700000015000,"type":"file-history-snapshot","messageId":"evt-asst","snapshot":{"trackedFileBackups":{}},"cwd":"/repo"}
+{"id":"evt-metrics","timestamp":1700000016000,"type":"turn-metrics","durationMs":1200,"tokenDelta":9}
+{"id":"evt-sess-meta","timestamp":1700000017000,"type":"session-meta","meta":{"codebuddy.ai/hostKind":"cli"}}

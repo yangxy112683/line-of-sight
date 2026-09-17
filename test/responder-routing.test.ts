@@ -34,6 +34,31 @@ describe('Ask strictly matches the session CLI', () => {
     } finally { await app.close(); store.close(); }
   });
 
+  it('a codebuddy session has no Ask engine and never calls claude-cli or codex-cli', async () => {
+    const claudeAvailable = vi.spyOn(claudeCliResponder, 'available').mockResolvedValue(true);
+    const claudeAnswer = vi.spyOn(claudeCliResponder, 'answer');
+    const codexAvailable = vi.spyOn(codexCliResponder, 'available').mockResolvedValue(true);
+    const codexAnswer = vi.spyOn(codexCliResponder, 'answer');
+    const store = new Store(':memory:');
+    const app = buildServer(store, new SseHub());
+    try {
+      store.upsertSession({ id: 's', adapter: 'codebuddy', filePath: '/synthetic/session.jsonl', projectDir: null,
+        title: '', startedAt: 0, updatedAt: 0, messageCount: 0, parentId: null, toolUseId: null });
+      const chat = store.createSideChat('s', 'm', 'anchor');
+      const status = await app.inject('/api/responder/status?adapter=codebuddy');
+      expect(status.json()).toMatchObject({
+        engine: null, error: 'Ask is unavailable for CodeBuddy Code sessions.',
+      });
+      const answer = await app.inject({ method: 'POST', url: `/api/side-chats/${chat.id}/ask`, payload: { question: 'why?' } });
+      expect(answer.statusCode).toBe(409);
+      expect(claudeAvailable).not.toHaveBeenCalled();
+      expect(claudeAnswer).not.toHaveBeenCalled();
+      expect(codexAvailable).not.toHaveBeenCalled();
+      expect(codexAnswer).not.toHaveBeenCalled();
+      expect(store.getSideChat(chat.id)?.turns).toEqual([]);
+    } finally { await app.close(); store.close(); }
+  });
+
   it('ignores a legacy Claude pin when probing a Codex session and prewarming its chat', async () => {
     vi.spyOn(codexCliResponder, 'available').mockResolvedValue(true);
     const claudeAvailable = vi.spyOn(claudeCliResponder, 'available').mockResolvedValue(true);

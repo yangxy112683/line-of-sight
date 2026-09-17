@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { claudeCodeAdapter } from '../adapters/claudeCode.js';
+import { codebuddyAdapter } from '../adapters/codebuddy.js';
 import { codexAdapter } from '../adapters/codex.js';
 import type { LiveSession } from '../shared/types.js';
 import { SIGHT_DIR, PID_FILE, DB_FILE, LOG_FILE, PORT } from '../shared/paths.js';
@@ -24,7 +25,7 @@ try {
   log(`cannot open ${DB_FILE}: ${String(e)}`);
   process.exit(1);
 }
-const adapters = [claudeCodeAdapter(), codexAdapter()];
+const adapters = [claudeCodeAdapter(), codexAdapter(), codebuddyAdapter()];
 const ingester = new Ingester(store, adapters, log);
 const hub = new SseHub();
 ingester.onEvents((sessionId, events, reset) => hub.broadcast(sessionId, events, reset));

@@ -44,5 +44,6 @@ export function resumeCommand(d: Dialect, sessionId: string, projectDir: string 
 export function dialectFor(adapter: SessionMeta['adapter']): Dialect {
   if (adapter === 'claude-code') return claudeCodeDialect;
   if (adapter === 'codex') return codexDialect;
+  if (adapter === 'codebuddy') return { ...genericDialect, displayName: 'cbc' };
   return { ...genericDialect, displayName: adapter };
 }

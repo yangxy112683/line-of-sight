@@ -1,6 +1,6 @@
 export interface SessionMeta {
   id: string;              // globally unique across adapters (claude: session uuid from filename)
-  adapter: 'claude-code' | 'codex';
+  adapter: 'claude-code' | 'codex' | 'codebuddy';
   filePath: string;
   projectDir: string | null;
   title: string;           // custom-title > ai-title > first user prompt, truncated to 120 chars
