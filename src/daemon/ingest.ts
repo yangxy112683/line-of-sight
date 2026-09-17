@@ -246,10 +246,9 @@ export class Ingester {
       // Same id, different file: skip the new one. ON CONFLICT DO NOTHING would
       // keep the row but appendEvents would mix two transcripts. Throw so the
       // catch logs and the daemon stays up (B4); first session is untouched.
-      // Gated to collisions that involve codebuddy so Claude/Codex ingest is
-      // unchanged (Codex relocatable duplicates are handled above).
-      if (bound && bound.filePath !== filePath
-          && (adapter.id === 'codebuddy' || bound.adapter === 'codebuddy')) {
+      // Relocatable Codex duplicates never reach here — resolveSessionFile
+      // already picked a source and bound the path.
+      if (bound && bound.filePath !== filePath) {
         throw new Error(`session UUID collision: ${meta.id}`);
       }
       this.store.upsertSession(meta);
