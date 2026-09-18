@@ -230,7 +230,9 @@ export function buildServer(store: Store, hub: SseHub,
   app.get<{ Querystring: { adapter?: string } }>('/api/responder/status', async (req) => {
     // Unknown/missing context has no answering engine.
     const engine = await resolveResponder(req.query.adapter as SessionMeta['adapter'] | undefined);
-    const settings = engine ? responderSettings(engine.id, readConfig()) : { model: '', effort: '' };
+    const settings = engine && (engine.id === 'claude-cli' || engine.id === 'codex-cli')
+      ? responderSettings(engine.id, readConfig())
+      : { model: '', effort: '' };
     return {
       engine: engine?.id ?? null,
       label: engine ? engine.label?.() ?? engine.id : null,
@@ -242,7 +244,7 @@ export function buildServer(store: Store, hub: SseHub,
         : req.query.adapter === 'claude-code'
           ? 'Claude Code CLI is unavailable. Install Claude Code to ask about this session.'
           : req.query.adapter === 'codebuddy'
-            ? 'Ask is unavailable for CodeBuddy Code sessions.'
+            ? 'CodeBuddy Code CLI is unavailable. Install CodeBuddy Code to ask about this session.'
             : 'Select a session to choose its answering CLI.',
     };
   });

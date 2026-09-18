@@ -1,19 +1,20 @@
 import type { SessionMeta } from '../shared/types.js';
 import { claudeCliResponder } from './claudeCli.js';
+import { codebuddyCliResponder } from './codebuddyCli.js';
 import { codexCliResponder } from './codexCli.js';
 import type { Responder } from './types.js';
 
 export type { Responder, ResponderRequest } from './types.js';
 export { ANTHROPIC_OPTIONS } from './types.js';
 
-const ENGINES: Responder[] = [claudeCliResponder, codexCliResponder];
+const ENGINES: Responder[] = [claudeCliResponder, codexCliResponder, codebuddyCliResponder];
 
-/** A session is answered only by its own agent's CLI. `codebuddy` has no
- *  engine until the Ask ticket — Partial so a missing slot is "unavailable",
- *  never a silent fall-back onto claude-cli / codex-cli. */
+/** A session is answered only by its own agent's CLI. Partial so a missing
+ *  slot is "unavailable", never a silent fall-back onto another engine. */
 const PREFERRED: Partial<Record<SessionMeta['adapter'], Responder['id']>> = {
   'claude-code': 'claude-cli',
   codex: 'codex-cli',
+  codebuddy: 'codebuddy-cli',
 };
 
 /** Unknown/missing session context has no candidate. Never cross-fallback
