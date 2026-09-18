@@ -14,7 +14,7 @@ export const CODEX_OPTIONS: ResponderOptions = {
 };
 
 export interface Responder {
-  id: 'claude-cli' | 'codex-cli';
+  id: 'claude-cli' | 'codex-cli' | 'codebuddy-cli';
   /** Model/effort choices this engine honors (rendered by the panel). */
   options: ResponderOptions | null;
   /** Display name for the panel's engine row when it has no selectors. */

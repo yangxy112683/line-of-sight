@@ -65,7 +65,7 @@ describe('candidates routing', () => {
   it('offers only the CLI matching the session', () => {
     expect(ids('codex')).toEqual(['codex-cli']);
     expect(ids('claude-code')).toEqual(['claude-cli']);
-    expect(ids('codebuddy')).toEqual([]);
+    expect(ids('codebuddy')).toEqual(['codebuddy-cli']);
   });
 
 });

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { claudeCliResponder } from '../src/responders/claudeCli.js';
+import { codebuddyCliResponder } from '../src/responders/codebuddyCli.js';
 import { codexCliResponder } from '../src/responders/codexCli.js';
 import { Store } from '../src/store/store.js';
 import { buildServer, SseHub } from '../src/daemon/server.js';
@@ -34,7 +35,8 @@ describe('Ask strictly matches the session CLI', () => {
     } finally { await app.close(); store.close(); }
   });
 
-  it('a codebuddy session has no Ask engine and never calls claude-cli or codex-cli', async () => {
+  it('does not fall back for an unavailable codebuddy CLI', async () => {
+    vi.spyOn(codebuddyCliResponder, 'available').mockResolvedValue(false);
     const claudeAvailable = vi.spyOn(claudeCliResponder, 'available').mockResolvedValue(true);
     const claudeAnswer = vi.spyOn(claudeCliResponder, 'answer');
     const codexAvailable = vi.spyOn(codexCliResponder, 'available').mockResolvedValue(true);
@@ -46,16 +48,32 @@ describe('Ask strictly matches the session CLI', () => {
         title: '', startedAt: 0, updatedAt: 0, messageCount: 0, parentId: null, toolUseId: null });
       const chat = store.createSideChat('s', 'm', 'anchor');
       const status = await app.inject('/api/responder/status?adapter=codebuddy');
-      expect(status.json()).toMatchObject({
-        engine: null, error: 'Ask is unavailable for CodeBuddy Code sessions.',
-      });
+      expect(status.json()).toMatchObject({ engine: null, error: expect.stringContaining('CodeBuddy') });
       const answer = await app.inject({ method: 'POST', url: `/api/side-chats/${chat.id}/ask`, payload: { question: 'why?' } });
       expect(answer.statusCode).toBe(409);
+      expect(answer.json().error).toContain('codebuddy-cli');
       expect(claudeAvailable).not.toHaveBeenCalled();
       expect(claudeAnswer).not.toHaveBeenCalled();
       expect(codexAvailable).not.toHaveBeenCalled();
       expect(codexAnswer).not.toHaveBeenCalled();
       expect(store.getSideChat(chat.id)?.turns).toEqual([]);
+    } finally { await app.close(); store.close(); }
+  });
+
+  it('reports codebuddy-cli when the CodeBuddy CLI is available', async () => {
+    vi.spyOn(codebuddyCliResponder, 'available').mockResolvedValue(true);
+    const claudeAvailable = vi.spyOn(claudeCliResponder, 'available');
+    const claudeAnswer = vi.spyOn(claudeCliResponder, 'answer');
+    const codexAvailable = vi.spyOn(codexCliResponder, 'available');
+    const codexAnswer = vi.spyOn(codexCliResponder, 'answer');
+    const store = new Store(':memory:');
+    const app = buildServer(store, new SseHub());
+    try {
+      expect((await app.inject('/api/responder/status?adapter=codebuddy')).json().engine).toBe('codebuddy-cli');
+      expect(claudeAvailable).not.toHaveBeenCalled();
+      expect(claudeAnswer).not.toHaveBeenCalled();
+      expect(codexAvailable).not.toHaveBeenCalled();
+      expect(codexAnswer).not.toHaveBeenCalled();
     } finally { await app.close(); store.close(); }
   });
 
