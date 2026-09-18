@@ -114,6 +114,7 @@ export function SidePanel({ chat, adapter, siblings, onSwitch, onClose, onChange
       void putResponderConfig(engine, patch).catch(() => {});
       return;
     }
+    if (engine !== 'codex-cli') return;
     setSavingConfig(true);
     setConfigError('');
     try {

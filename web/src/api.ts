@@ -85,7 +85,7 @@ export function cancelAsk(id: string): void {
 
 export interface ResponderStatus {
   error?: string | null;
-  engine: 'claude-cli' | 'codex-cli' | null;
+  engine: 'claude-cli' | 'codex-cli' | 'codebuddy-cli' | null;
   /** Display name for engines that do not expose selectors. */
   label: string | null;
   /** engine-declared model/effort choices; null = engine takes neither */
@@ -100,7 +100,7 @@ export async function fetchResponderStatus(adapter?: SessionMeta['adapter']): Pr
   return res.json() as Promise<ResponderStatus>;
 }
 
-export async function putResponderConfig(engine: NonNullable<ResponderStatus['engine']>,
+export async function putResponderConfig(engine: 'claude-cli' | 'codex-cli',
     cfg: { responderModel?: string; responderEffort?: string }): Promise<{ model: string; effort: string }> {
   const res = await fetch('/api/responder/config', {
     method: 'PUT',
