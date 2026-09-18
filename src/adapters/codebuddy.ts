@@ -1,10 +1,25 @@
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import type { RenderBlock, SessionPatch } from '../shared/types.js';
+import type { LiveSession, RenderBlock, SessionPatch } from '../shared/types.js';
 import type { AgentAdapter } from './types.js';
 import { parseTs, str, truncate } from './util.js';
 
 const UUID_JSONL = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jsonl$/i;
+const PID_JSON = /^\d+\.json$/;
+const PLACEHOLDER_ID = /^(interactive|daemon|prewarm)-/;
+const HEARTBEAT_MAX_AGE_MS = 120_000;
+const PID_MAX = 2 ** 22;
+
+function pidAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const DROP_TYPES = new Set(['file-history-snapshot', 'turn-metrics', 'session-meta']);
 const META_TYPES = new Set([
   'goal-progress', 'goal-result', 'agent_started', 'agent_finished',
@@ -63,12 +78,43 @@ function isRealPrompt(text: string): boolean {
   return t.length > 0 && !t.startsWith('<');
 }
 
-export function codebuddyAdapter(root = path.join(os.homedir(), '.codebuddy', 'projects')): AgentAdapter {
+export function codebuddyAdapter(
+  root = path.join(os.homedir(), '.codebuddy', 'projects'),
+  sessionsDir = path.join(root, '..', 'sessions'),
+): AgentAdapter {
   return {
     id: 'codebuddy',
     roots: () => [root],
     // <slug>/<uuid>.jsonl — v1 is main sessions only; subagents are not matched
     watchDepth: 2,
+
+    // ~/.codebuddy/sessions/<pid>.json is CBC's heartbeat. Codex-shaped
+    // {state:'alive', since:0} — lastHeartbeat is freshness only, never since.
+    // Missing dir / unreadable files fail open to an empty map (B4).
+    liveSessions() {
+      const live = new Map<string, LiveSession>();
+      let files: string[];
+      try {
+        files = fs.readdirSync(sessionsDir);
+      } catch {
+        return live;
+      }
+      const now = Date.now();
+      for (const f of files) {
+        if (!PID_JSON.test(f)) continue;
+        try {
+          const s = JSON.parse(fs.readFileSync(path.join(sessionsDir, f), 'utf8')) as Json;
+          const id = str(s.sessionId);
+          if (!id || PLACEHOLDER_ID.test(id)) continue;
+          if (s.kind !== 'interactive') continue;
+          if (typeof s.pid !== 'number' || s.pid <= 0 || s.pid >= PID_MAX) continue;
+          if (typeof s.lastHeartbeat !== 'number' || !(now - s.lastHeartbeat <= HEARTBEAT_MAX_AGE_MS)) continue;
+          if (!pidAlive(s.pid)) continue;
+          live.set(id, { state: 'alive', since: 0 });
+        } catch { /* stale or unreadable */ }
+      }
+      return live;
+    },
 
     matches(filePath) {
       return UUID_JSONL.test(path.basename(filePath))
