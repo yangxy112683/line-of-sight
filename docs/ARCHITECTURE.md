@@ -473,6 +473,7 @@ No normalized full-session projection is needed under strict routing.
 |---|---|
 | claude-cli | `--allowedTools "Read,Grep,Glob"` + `--disallowedTools` on all mutating/exfiltrating tools; `--restricted --add-dir <transcript dir>` fences reads to the project and the transcript directory |
 | codex-cli | `--sandbox read-only` — blocks writes and network (verified 2026-09-16: DNS fails inside the sandbox), not reads; Codex has no read fence, so its responder can read any file the user can |
+| codebuddy-cli | `--tools` / `--allowedTools "Read,Grep,Glob"` + `--disallowedTools` including CBC-only mutators (`PowerShell`, `Agent`, `REPL`, `Skill`); `--setting-sources none` (empty string loads all sources); `--add-dir <transcript dir>` is a grant, not a fence. No `--restricted` — out-of-trusted-dir reads are a permission deny, not a structural file-tool error (same class of residual as Codex `--sandbox read-only`). Flags read from `--help` / the installed package on cbc 2.150.0; not live-fired against a model |
 
 If an engine cannot guarantee read-only, it must not be offered as a
 candidate.
