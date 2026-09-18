@@ -7,7 +7,7 @@ import type { DecodedRollout, RolloutLine } from './codexRollout.js';
  *  own uuid to get that for free; an adapter without uuids must prefix its
  *  ids with its adapter id. */
 export interface AgentAdapter {
-  id: 'claude-code' | 'codex';           // extend by union, no registry magic
+  id: 'claude-code' | 'codex' | 'codebuddy';  // extend by union, no registry magic
   /** Absolute dirs to scan/watch for transcripts. */
   roots(): string[];
   /** chokidar depth under each root; omit = unlimited. */

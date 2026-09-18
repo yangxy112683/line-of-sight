@@ -237,4 +237,23 @@ describe('incremental ingest', () => {
     // right filename, wrong depth
     expect(a.matches(path.join(root, '-tmp-proj', 'subagents', 'agent-x.jsonl'))).toBe(false);
   });
+
+  it('skips a colliding id, logs, leaves the first session untouched, stays up', () => {
+    const logs: string[] = [];
+    const colliding = new Ingester(store, [adapter()], (m) => logs.push(m), () => false);
+    fs.writeFileSync(file, line('u1', 'first prompt'));
+    colliding.ingestFile(adapter(), file);
+    expect(store.getSession(SESSION)).toMatchObject({ title: 'first prompt', messageCount: 1 });
+
+    const otherDir = path.join(root, '-other-proj');
+    fs.mkdirSync(otherDir);
+    const other = path.join(otherDir, `${SESSION}.jsonl`);
+    fs.writeFileSync(other, line('u2', 'must not mix in'));
+    expect(() => colliding.ingestFile(adapter(), other)).not.toThrow();
+    expect(store.getSession(SESSION)).toMatchObject({
+      title: 'first prompt', filePath: file, messageCount: 1,
+    });
+    expect(store.getEvents(SESSION).map((e) => e.id)).toEqual(['u1']);
+    expect(logs.some((m) => m.includes('session UUID collision') && m.includes(SESSION))).toBe(true);
+  });
 });

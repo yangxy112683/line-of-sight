@@ -54,7 +54,7 @@ describe('composePrompt', () => {
 });
 
 describe('candidates routing', () => {
-  const ids = (adapter?: 'claude-code' | 'codex') =>
+  const ids = (adapter?: 'claude-code' | 'codex' | 'codebuddy') =>
     candidates(adapter).map((e) => e.id);
 
   it('requires known session context', () => {
@@ -65,6 +65,7 @@ describe('candidates routing', () => {
   it('offers only the CLI matching the session', () => {
     expect(ids('codex')).toEqual(['codex-cli']);
     expect(ids('claude-code')).toEqual(['claude-cli']);
+    expect(ids('codebuddy')).toEqual([]);
   });
 
 });

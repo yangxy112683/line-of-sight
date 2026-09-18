@@ -8,8 +8,10 @@ export { ANTHROPIC_OPTIONS } from './types.js';
 
 const ENGINES: Responder[] = [claudeCliResponder, codexCliResponder];
 
-/** A session is answered only by its own agent's CLI. */
-const PREFERRED: Record<SessionMeta['adapter'], Responder['id']> = {
+/** A session is answered only by its own agent's CLI. `codebuddy` has no
+ *  engine until the Ask ticket — Partial so a missing slot is "unavailable",
+ *  never a silent fall-back onto claude-cli / codex-cli. */
+const PREFERRED: Partial<Record<SessionMeta['adapter'], Responder['id']>> = {
   'claude-code': 'claude-cli',
   codex: 'codex-cli',
 };

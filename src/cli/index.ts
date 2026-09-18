@@ -86,7 +86,7 @@ function openBrowser(): void {
   spawn(cmd, [URL_BASE], { detached: true, stdio: 'ignore' }).unref();
 }
 
-/** `sight claude|codex [args...]` — fail-open wrapper (SPEC B4, ARCHITECTURE §8).
+/** `sight claude|codex|cbc [args...]` — fail-open wrapper (SPEC B4, ARCHITECTURE §8).
  *  Steps 1–2 are best-effort with a hard time budget; step 3 always runs. */
 async function wrap(agent: string, args: string[]): Promise<never> {
   try {
@@ -218,13 +218,14 @@ async function cmdStats(): Promise<void> {
 async function cmdInspect(file: string | undefined): Promise<void> {
   if (!file) { console.error('usage: sight inspect <transcript.jsonl>'); process.exitCode = 1; return; }
   const { claudeCodeAdapter } = await import('../adapters/claudeCode.js');
+  const { codebuddyAdapter } = await import('../adapters/codebuddy.js');
   const { codexAdapter } = await import('../adapters/codex.js');
   const abs = path.resolve(file);
   if (!fs.existsSync(abs)) { console.error(`sight inspect: no such file: ${abs}`); process.exitCode = 1; return; }
   const lines = fs.readFileSync(abs, 'utf8').split('\n').filter(Boolean);
   // a file outside the usual roots matches no adapter: take whichever
   // understands the most lines
-  const parsed = [claudeCodeAdapter(), codexAdapter()].map((adapter) => ({
+  const parsed = [claudeCodeAdapter(), codexAdapter(), codebuddyAdapter()].map((adapter) => ({
     adapter,
     events: lines.flatMap((line, i) => adapter.parseLine(line, { filePath: abs, byteOffset: i })),
   }));
@@ -255,6 +256,7 @@ switch (cmd) {
   // wrappers bypass arg parsing entirely — everything passes through untouched
   case 'claude':
   case 'codex':
+  case 'cbc':
     void wrap(cmd, rest);
     break;
   case 'start': void cmdStart(); break;
@@ -272,6 +274,7 @@ switch (cmd) {
 
   sight claude [args...]   run claude with the viewer alongside
   sight codex [args...]    run codex with the viewer alongside
+  sight cbc [args...]      run cbc with the viewer alongside
   sight start|stop|status  daemon lifecycle
   sight version            print the installed version
   sight open               open the viewer in the browser

@@ -242,6 +242,15 @@ export class Ingester {
     }
     if (!session) {
       const meta = adapter.sessionMeta(filePath, events.slice(0, 5));
+      const bound = this.store.getSession(meta.id);
+      // Same id, different file: skip the new one. ON CONFLICT DO NOTHING would
+      // keep the row but appendEvents would mix two transcripts. Throw so the
+      // catch logs and the daemon stays up (B4); first session is untouched.
+      // Relocatable Codex duplicates never reach here — resolveSessionFile
+      // already picked a source and bound the path.
+      if (bound && bound.filePath !== filePath) {
+        throw new Error(`session UUID collision: ${meta.id}`);
+      }
       this.store.upsertSession(meta);
       if (adapter.resolveSessionFile) {
         const stat = fs.statSync(filePath);

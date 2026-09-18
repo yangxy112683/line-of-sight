@@ -241,7 +241,9 @@ export function buildServer(store: Store, hub: SseHub,
         ? 'Codex CLI is unavailable. Install Codex CLI to ask about this session.'
         : req.query.adapter === 'claude-code'
           ? 'Claude Code CLI is unavailable. Install Claude Code to ask about this session.'
-          : 'Select a session to choose its answering CLI.',
+          : req.query.adapter === 'codebuddy'
+            ? 'Ask is unavailable for CodeBuddy Code sessions.'
+            : 'Select a session to choose its answering CLI.',
     };
   });
 

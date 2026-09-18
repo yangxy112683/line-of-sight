@@ -6,6 +6,16 @@ describe('dialectFor', () => {
   it('each agent gets its dialect and badge label', () => {
     expect(dialectFor('claude-code').displayName).toBe('claude');
     expect(dialectFor('codex').displayName).toBe('codex');
+    expect(dialectFor('codebuddy').displayName).toBe('cbc');
+  });
+
+  it('codebuddy stays at the generic floor until the dialect ticket', () => {
+    const d = dialectFor('codebuddy');
+    expect(d.resumeArgv('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee')).toBeNull();
+    expect(d.isBlockingUse({ type: 'tool_use', id: 'i', toolName: 'AskUserQuestion', summary: '', input: {} })).toBe(false);
+    expect(d.askQuestions({ type: 'tool_use', id: 'i', toolName: 'AskUserQuestion', summary: '', input: {} })).toBeNull();
+    expect(d.editDiff({ type: 'tool_use', id: 'i', toolName: 'Edit', summary: '', input: { old_string: 'a', new_string: 'b' } })).toBeNull();
+    expect(d.plumbing('<system-reminder>x')).toBeNull();
   });
 });
 
