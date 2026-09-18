@@ -1,10 +1,12 @@
 import type { SessionMeta } from '../types.js';
 import { claudeCodeDialect } from './claudeCode.js';
+import { codebuddyDialect } from './codebuddy.js';
 import { codexDialect } from './codex.js';
 import type { Dialect } from './types.js';
 
 export type { AskOption, AskQuestion, Dialect, EditPair, Plumbing } from './types.js';
 export { claudeCodeDialect } from './claudeCode.js';
+export { codebuddyDialect } from './codebuddy.js';
 export { codexDialect } from './codex.js';
 
 /** The defensive floor an unknown agent gets: no cards, no queue strip, no
@@ -44,6 +46,6 @@ export function resumeCommand(d: Dialect, sessionId: string, projectDir: string 
 export function dialectFor(adapter: SessionMeta['adapter']): Dialect {
   if (adapter === 'claude-code') return claudeCodeDialect;
   if (adapter === 'codex') return codexDialect;
-  if (adapter === 'codebuddy') return { ...genericDialect, displayName: 'cbc' };
+  if (adapter === 'codebuddy') return codebuddyDialect;
   return { ...genericDialect, displayName: adapter };
 }

@@ -9,13 +9,9 @@ describe('dialectFor', () => {
     expect(dialectFor('codebuddy').displayName).toBe('cbc');
   });
 
-  it('codebuddy stays at the generic floor until the dialect ticket', () => {
-    const d = dialectFor('codebuddy');
-    expect(d.resumeArgv('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee')).toBeNull();
-    expect(d.isBlockingUse({ type: 'tool_use', id: 'i', toolName: 'AskUserQuestion', summary: '', input: {} })).toBe(false);
-    expect(d.askQuestions({ type: 'tool_use', id: 'i', toolName: 'AskUserQuestion', summary: '', input: {} })).toBeNull();
-    expect(d.editDiff({ type: 'tool_use', id: 'i', toolName: 'Edit', summary: '', input: { old_string: 'a', new_string: 'b' } })).toBeNull();
-    expect(d.plumbing('<system-reminder>x')).toBeNull();
+  it('codebuddy resumes with cbc --resume', () => {
+    expect(dialectFor('codebuddy').resumeArgv('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'))
+      .toEqual(['cbc', '--resume', 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee']);
   });
 });
 
@@ -52,7 +48,10 @@ describe('resumeCommand', () => {
   it("cd + the agent's own resume argv, directory shell-quoted", () => {
     expect(resumeCommand(dialectFor('claude-code'), 'a1b2-c3', "/Users/x/it's"))
       .toBe("cd '/Users/x/it'\\''s' && claude --resume a1b2-c3");
+    expect(resumeCommand(dialectFor('codebuddy'), 'a1b2-c3', "/Users/x/it's"))
+      .toBe("cd '/Users/x/it'\\''s' && cbc --resume a1b2-c3");
     expect(resumeCommand(dialectFor('codex'), 'a1b2-c3', null)).toBe('codex resume a1b2-c3');
+    expect(resumeCommand(dialectFor('codebuddy'), 'a1b2-c3', null)).toBe('cbc --resume a1b2-c3');
   });
 
   it('null for agents without resume, and for ids that are not plain tokens', () => {
